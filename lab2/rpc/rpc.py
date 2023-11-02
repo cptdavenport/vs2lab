@@ -1,5 +1,6 @@
 import logging
 import threading
+from typing import Tuple
 
 import constRPC
 from context import lab_channel
@@ -16,10 +17,10 @@ class DBList:
 
 class Client:
     def __init__(self):
-        self.chan = lab_channel.Channel()
-        self.client = self.chan.join("client")
+        # self.chan = lab_channel.Channel()
+        # self.client = self.chan.join("client")
         self.server = None
-        self.logger = logging.getLogger("vs2lab.lab2.channel.Client")
+        # self.logger = logging.getLogger("vs2lab.lab2.channel.Client")
 
     def run(self):
         self.chan.bind(self.client)
@@ -34,6 +35,32 @@ class Client:
         self.chan.send_to(self.server, msglst)  # send msg to server
         msgrcv = self.chan.receive_from(self.server)  # wait for response
         return msgrcv[1]  # pass it to caller
+
+    def _call_method(
+        self,
+        method_name: str,
+        args: tuple = None,
+    ) -> Tuple[bool, str]:
+        # add empty args tuple if none is given
+        if args is None:
+            args = ()
+        # make sure args is a tuple, e.g. one arg as a single string
+        if not isinstance(args, tuple):
+            args = (args,)
+        # check if method exists
+        try:
+            method = getattr(self, method_name)
+        except AttributeError:
+            return False, f'Method "{method_name}" not found'
+        except TypeError:
+            return False, f'Wrong number of arguments for"{method_name}" '
+        return method(*args), "OK"
+
+    def print_hello(self):
+        print("hello")
+
+    def print_string(self, string):
+        print(string)
 
 
 class Server:
