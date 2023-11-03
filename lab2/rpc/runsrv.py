@@ -11,7 +11,7 @@ chan = lab_channel.Channel()
 chan.channel.flushall()
 logger.debug("Flushed all redis keys.")
 
-runtime = 600
+runtime = 40
 srv = Server()
 srv.run()
 logger.info(f"run server for {runtime} seconds")

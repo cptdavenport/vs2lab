@@ -90,20 +90,20 @@ class Client:
             original_db_list (DBList): the list to update with the result
         """
         # get thread id of current running thread
-        current_thread_id = threading.get_ident()
-        self.logger.info(f"waiting for result in thread with ID: {current_thread_id}")
+        current_thread_id = threading.get_native_id()
+        self.logger.info(f"WORKER[{current_thread_id}]: waiting for result ...")
 
         # blocking wait for result
         # use _ to ignore first arg of sender id
         # see tuple unpacking at
         # https://docs.python.org/3/tutorial/controlflow.html#tut-unpacking-arguments
         _, new_db_list = self.chan.receive_from(self.server)
-        self.logger.info(f"received result in thread with ID: {current_thread_id}")
-        self.logger.info(f"calling callback in thread with ID: {current_thread_id}")
+        self.logger.info(f"WORKER[{current_thread_id}]: received result from server")
+        self.logger.info(f"WORKER[{current_thread_id}]: calling callback ...")
 
         # call callback with result
         callback(original_db_list, new_db_list)
-        self.logger.info(f"thread with ID: {current_thread_id} finished.")
+        self.logger.info(f"WORKER[{current_thread_id}]: finished.")
 
     def update_list_object(self, db_list: DBList, new_list: DBList):
         print(f"update list object {db_list} with {new_list}")

@@ -67,22 +67,19 @@ class Server:
             clients (dict): dict of clients to send the result to
             msg_rpc: the message received from the client
         """
-        current_thread_id = threading.get_ident()
+        current_thread_id = threading.get_native_id()
         duration_s = random.randint(
             constRPC.SERVER_WORK_DURATION[0], constRPC.SERVER_WORK_DURATION[1]
         )
         self.logger.info(
-            f"async calculating result for {duration_s}s "
-            f"in thread with ID: {current_thread_id}"
+            f"WORKER[{current_thread_id}]: async calculating result for {duration_s}s"
         )
         result = self.append(msg_rpc[1], msg_rpc[2])  # do local call
         # fake some work
         sleep(duration_s)
         self.chan.send_to(clients, result)
 
-        self.logger.info(
-            f"result sent to client in thread with ID: {current_thread_id}"
-        )
+        self.logger.info(f"WORKER[{current_thread_id}]:result sent to client")
 
     def run(self):
         """Starts the server thread."""
