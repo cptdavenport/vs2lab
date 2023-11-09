@@ -105,11 +105,6 @@ class Client:
         callback(original_db_list, new_db_list)
         self.logger.info(f"WORKER[{current_thread_id}]: finished.")
 
-    def update_list_object(self, db_list: DBList, new_list: DBList):
-        print(f"update list object {db_list} with {new_list}")
-        # replace db_list elements with new_list elements
-        db_list = new_list
-
     def do_work(self, duration_s: int = None):
         """
         Do some work for a given amount of time. If no duration is given, a random
