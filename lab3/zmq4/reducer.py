@@ -35,7 +35,6 @@ class Reducer(Thread):
                 self.stop_reducing()
                 break
 
-            self.logger.debug(f'[b]receive[/b] word"{word}"')
             self.reduce_word(word)
 
     def reduce_word(self, word: str):
