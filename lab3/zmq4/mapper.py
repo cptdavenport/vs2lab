@@ -14,7 +14,7 @@ class Mapper(Thread):
 
         self._stop_event = Event()
         self._context = zmq.Context()
-        self._timeout_s = 10
+        self._timeout_s = 100
 
         # Socket to receive messages on
         self._receiver = self._context.socket(zmq.PULL)
@@ -25,8 +25,8 @@ class Mapper(Thread):
         # Sockets to send messages to
         self._senders = list()
         for s in reducer_nums:
-            reducer_url = f"tcp://localhost:{PORT_REDUCER_START + s}"
-            self.logger.info(f"connecting [b]reducer #{s}[/b] {splitter_url}")
+            reducer_url = f"tcp://{LOCALHOST}:{PORT_REDUCER_START + s}"
+            self.logger.info(f"connecting [b]reducer #{s}[/b] {reducer_url}")
             sender = self._context.socket(zmq.PUSH)
             sender.connect(reducer_url)
             self._senders.append(sender)
@@ -53,11 +53,10 @@ class Mapper(Thread):
         for word in sentence:
             # send word to reducer,
             # decide by the length of the word modulo the number of reducers
-            receiver_num = len(word) % len(self._senders)
-            self.logger.debug(
-                f'[b]send[/b] "{word}" to reducer [b]receive#{receiver_num}[/b]'
-            )
-            self._senders[receiver_num].send_pyobj(word)
+            reducer_num = len(word) % len(self._senders)
+            self.logger.debug(f'[b]send[/b] "{word}" to [b]reducer#{reducer_num}[/b]')
+            sender = self._senders[reducer_num]
+            sender.send_pyobj(word)
 
     def start_mapping(self):
         if not self.is_alive():

@@ -20,7 +20,7 @@ class Reducer(Thread):
         self._receiver = self._context.socket(zmq.PULL)
         receiver_url = f"tcp://{LOCALHOST}:{PORT_REDUCER_START + reducer_num}"
         self.logger.info(f"start reducer [b]sink[/b] {receiver_url}")
-        self._receiver.connect(receiver_url)
+        self._receiver.bind(receiver_url)
         self._words = dict()
 
     def run(self):
@@ -57,3 +57,7 @@ class Reducer(Thread):
         except RuntimeError:
             pass
         self.logger.debug("stopped reducer")
+        # log words sorted by value
+        sorted_dict = dict(sorted(self._words.items(), key=lambda item: item[1]))
+
+        self.logger.info(sorted_dict)

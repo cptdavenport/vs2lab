@@ -18,7 +18,7 @@ class Splitter:
         self.logger = logging.getLogger(__name__)
 
         # Get the text of a specific book from the Gutenberg corpus
-        # i don't use this, but it's here for reference to the raw text
+        # I don't use this, but it's here for reference to the raw text
         # and the use of tokenization
         # self._text = gutenberg.raw(text)
         # self._sentences = sent_tokenize(self._text)

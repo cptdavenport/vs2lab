@@ -5,7 +5,7 @@ from rich.console import Console
 from zmq4.log import setup_logging
 from zmq4.mapper import Mapper
 
-setup_logging(log_level="INFO")
+setup_logging()
 console = Console()
 mappers = list()
 reducer_numbers = [0, 1]
