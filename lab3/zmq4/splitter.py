@@ -30,6 +30,9 @@ class Splitter:
         self._sender.bind(
             f"tcp://{LOCALHOST}:{PORT_SPLITTER}"
         )  # bind socket to address
+        self.logger.info(
+            f"start splitter [b]source[/b] tcp://{LOCALHOST}:{PORT_SPLITTER}"
+        )
 
     def send_sentences(self):
         console: Console = self.logger.parent.handlers[0].console

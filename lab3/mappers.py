@@ -5,12 +5,13 @@ from rich.console import Console
 from zmq4.log import setup_logging
 from zmq4.mapper import Mapper
 
-setup_logging()
+setup_logging(log_level="INFO")
 console = Console()
 mappers = list()
+reducer_numbers = [0, 1]
 
 for i in range(3):
-    m = Mapper(i)
+    m = Mapper(i, reducer_nums=reducer_numbers)
     m.start_mapping()
     mappers.append(m)
 
