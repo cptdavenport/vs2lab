@@ -1,9 +1,10 @@
 import logging
+import time
 from threading import Thread, Event
 
 import zmq
-from zmq4.constants import LOCALHOST
-from zmq4.constants import PORT_REDUCER_START
+from rich.console import Console
+from zmq4.constants import PORT_REDUCER_START, STATE_WAITING, STATE_RUNNING, LOCALHOST
 
 
 class Reducer(Thread):
@@ -22,6 +23,7 @@ class Reducer(Thread):
         self.logger.info(f"start reducer [b]sink[/b] {receiver_url}")
         self._receiver.bind(receiver_url)
         self._words = dict()
+        self._last_update = time.time() - 10
 
     def run(self):
         # set timeout to 1 second
@@ -43,6 +45,7 @@ class Reducer(Thread):
         else:
             self._words[word] = 1
         self.logger.debug(f'[b]reduce[/b] "{word}"[{self._words[word]}]')
+        self._last_update = time.time()
 
     def start_reducing(self):
         if not self.is_alive():
@@ -57,6 +60,15 @@ class Reducer(Thread):
             pass
         self.logger.debug("stopped reducer")
         # log words sorted by value
-        sorted_dict = dict(sorted(self._words.items(), key=lambda item: item[1]))
+        console: Console = self.logger.parent.handlers[0].console
 
-        self.logger.info(sorted_dict)
+    def get_sorted_wordlist(self):
+        return dict(sorted(self._words.items(), key=lambda item: item[1], reverse=True))
+
+    @property
+    def state(self):
+        if self._last_update + 1 < time.time():
+            state = STATE_WAITING
+        else:
+            state = STATE_RUNNING
+        return state

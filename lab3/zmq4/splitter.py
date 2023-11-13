@@ -8,7 +8,7 @@ from zmq4.constants import LOCALHOST, PORT_SPLITTER
 
 
 class Splitter:
-    def __init__(self, text="bible-kjv.txt"):
+    def __init__(self, text="bible-kjv.txt", limit_sentences: int = None):
         # use nltk to get words and sentences https://www.nltk.org/book/ch02.html
         # Download the Gutenberg corpus (if not already downloaded)
         nltk.download("gutenberg")
@@ -23,7 +23,8 @@ class Splitter:
         # self._text = gutenberg.raw(text)
         # self._sentences = sent_tokenize(self._text)
         self._sentences = gutenberg.sents(text)
-        self._sentences = self._sentences[:10]  # limit to 10 sentences for testing
+        if limit_sentences is not None:
+            self._sentences = self._sentences[:100]  # limit to 10 sentences for testing
 
         self._context = zmq.Context()
         self._sender = self._context.socket(zmq.PUSH)  # create a push socket

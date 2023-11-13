@@ -5,14 +5,24 @@ from rich.console import Console
 from zmq4.log import setup_logging
 from zmq4.reducer import Reducer
 
-setup_logging()
+setup_logging(log_level="DEBUG")
 console = Console()
-reducers = list()
+reducers: list[Reducer] = list()
 
 for i in range(2):
     r = Reducer(i)
-    r.start_reducing()
     reducers.append(r)
 
-sleep(1)
-# console.input(f"Press enter to stop the {len(mappers)} mappers :stop_sign: ")
+running = True
+with console.status(f"[bold] {len(reducers)} {reducers[0].state} reducers") as status:
+    for r in reducers:
+        r.start_reducing()
+    while running:
+        for r in reducers:
+            running = running & r.is_alive()
+        status.update(f"[bold] {len(reducers)} {reducers[0].state} reducers")
+        sleep(0.5)
+
+for i, r in enumerate(reducers):
+    wordlist = r.get_sorted_wordlist()
+    console.log(f"reducer #{i} top {10} words:\n{wordlist}")

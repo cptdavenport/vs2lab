@@ -1,9 +1,15 @@
 import logging
+import time
 from threading import Thread, Event
 
 import zmq
-from zmq4.constants import LOCALHOST, PORT_SPLITTER
-from zmq4.constants import PORT_REDUCER_START
+from zmq4.constants import (
+    LOCALHOST,
+    PORT_SPLITTER,
+    STATE_WAITING,
+    PORT_REDUCER_START,
+    STATE_RUNNING,
+)
 
 
 class Mapper(Thread):
@@ -14,7 +20,7 @@ class Mapper(Thread):
 
         self._stop_event = Event()
         self._context = zmq.Context()
-        self._timeout_s = 100
+        self._timeout_s = 20
 
         # Socket to receive messages on
         self._receiver = self._context.socket(zmq.PULL)
@@ -31,6 +37,7 @@ class Mapper(Thread):
             sender.connect(reducer_url)
             self._senders.append(sender)
 
+        self._last_update = time.time() - 10
         print()
 
     def run(self):
@@ -47,6 +54,7 @@ class Mapper(Thread):
 
             self.logger.info(f"[b]receive[/b] sentence[{s_num}]")
             self.logger.debug(f'[b]receive[/b] "{sentence}"')
+            self._last_update = time.time()
             self.send_words_to_reducer(sentence)
 
     def send_words_to_reducer(self, sentence: list):
@@ -70,3 +78,11 @@ class Mapper(Thread):
         except RuntimeError:
             pass
         self.logger.debug("stopped mapping")
+
+    @property
+    def state(self):
+        if self._last_update + 1 < time.time():
+            state = STATE_WAITING
+        else:
+            state = STATE_RUNNING
+        return state
