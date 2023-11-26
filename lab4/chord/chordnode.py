@@ -113,10 +113,11 @@ class ChordNode:
             self.finger(i) for i in range(1, self.n_bits + 1)
         ]  # Successors
 
-    def local_successor_node(self, key) -> int:
+    def local_successor_node(self, key: int) -> int:
         """
         Locate successor of a key in local finger table
         :param key: key to be located
+        :type key: int
         :return: located node name
         """
         if self.in_between(
@@ -174,15 +175,45 @@ class ChordNode:
                 break
 
             if request[0] == constChord.LOOKUP_REQ:  # A lookup request
-                self.logger.info(
-                    "Node {:04n} received LOOKUP {:04n} from {:04n}.".format(
-                        self.node_id, int(request[1]), int(sender)
+                key_searched: int = int(request[1])
+                self.logger.debug(
+                    "Node #{:04n} received LOOKUP {:04n} from {:04n}.".format(
+                        self.node_id, key_searched, int(sender)
                     )
                 )
 
-                # look up and return local successor
-                next_id: int = self.local_successor_node(request[1])
-                self.channel.send_to([sender], (constChord.LOOKUP_REP, next_id))
+                # look up in FT
+                next_id = self.local_successor_node(key_searched)
+
+                # check which node is responsible
+                if next_id == self.node_id:
+                    # this node is responsible
+                    self.logger.info(
+                        f"Node #{self.node_id:04n} RESPONSIBLE for key "
+                        f"{key_searched:04n}. Sending LOOKUP_SUCCESS to {int(sender):04n}"
+                    )
+                    msg = [self.node_id]
+                    self.channel.send_to({sender}, msg)
+                else:
+                    # forward request to responsible node
+                    self.logger.info(
+                        f"Node #{self.node_id:04n} FORWARD key "
+                        f"{key_searched:04n} to {next_id:04n}"
+                    )
+                    next_id_str = str(next_id)
+                    msg = [constChord.LOOKUP_REQ, key_searched]
+                    # convert to string for channel
+                    self.channel.send_to({next_id_str}, msg)
+
+                    # Wait for the response
+                    response = self.channel.receive_from({next_id_str})
+
+                    # reply to sender
+                    self.logger.info(
+                        f"Node #{self.node_id:04n} ANSWER key "
+                        f"{key_searched:04n} to {int(sender):04n}"
+                    )
+                    self.channel.send_to({sender}, response)
 
                 # Finally do a sanity check
                 if not self.channel.exists(next_id):  # probe for existence
