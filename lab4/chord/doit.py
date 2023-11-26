@@ -8,8 +8,8 @@ Chord Application
 """
 
 import logging
-import sys
 import multiprocessing as mp
+import sys
 
 import chordnode as chord_node
 import constChord
@@ -23,7 +23,7 @@ class DummyChordClient:
 
     def __init__(self, channel):
         self.channel = channel
-        self.node_id = channel.join('client')
+        self.node_id = channel.join("client")
 
     def enter(self):
         self.channel.bind(self.node_id)
@@ -31,8 +31,9 @@ class DummyChordClient:
     def run(self):
         print("Implement me pls...")
         self.channel.send_to(  # a final multicast
-            {i.decode() for i in list(self.channel.channel.smembers('node'))},
-            constChord.STOP)
+            {i.decode() for i in list(self.channel.channel.smembers("node"))},
+            constChord.STOP,
+        )
 
 
 def create_and_run(num_bits, node_class, enter_bar, run_bar):
@@ -40,7 +41,7 @@ def create_and_run(num_bits, node_class, enter_bar, run_bar):
     Create and run a node (server or client role)
     :param num_bits: address range of the channel
     :param node_class: class of node
-    :param enter_bar: barrier syncing channel population 
+    :param enter_bar: barrier syncing channel population
     :param run_bar: barrier syncing node creation
     """
     chan = lab_channel.Channel(n_bits=num_bits)
@@ -65,11 +66,11 @@ if __name__ == "__main__":  # if script is started from command line
     chan.channel.flushall()
 
     # we need to spawn processes for support of windows
-    mp.set_start_method('spawn')
+    mp.set_start_method("spawn")
 
     # create barriers to synchronize bootstrapping
-    bar1 = mp.Barrier(n+1)  # Wait for channel population to complete
-    bar2 = mp.Barrier(n+1)  # Wait for ring construction to complete
+    bar1 = mp.Barrier(n + 1)  # Wait for channel population to complete
+    bar2 = mp.Barrier(n + 1)  # Wait for ring construction to complete
 
     # start n chord nodes in separate processes
     children = []
@@ -77,7 +78,8 @@ if __name__ == "__main__":  # if script is started from command line
         nodeproc = mp.Process(
             target=create_and_run,
             name="ChordNode-" + str(i),
-            args=(m, chord_node.ChordNode, bar1, bar2))
+            args=(m, chord_node.ChordNode, bar1, bar2),
+        )
         children.append(nodeproc)
         nodeproc.start()
 
@@ -85,7 +87,8 @@ if __name__ == "__main__":  # if script is started from command line
     clientproc = mp.Process(
         target=create_and_run,
         name="ChordClient",
-        args=(m, DummyChordClient, bar1, bar2))
+        args=(m, DummyChordClient, bar1, bar2),
+    )
     clientproc.start()
     clientproc.join()
 
