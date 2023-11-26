@@ -56,7 +56,8 @@ class DummyChordClient:
         msg = [constChord.LOOKUP_REQ, random_key_str]
 
         CONSOLE.print(
-            f"Sending LOOKUP request for key {random_key:04n} to node #{target_node_id:04n}"
+            f"\n\nSending LOOKUP request for key {random_key:04n} to node #{target_node_id:04n}\n",
+            style="bold blue",
         )
         self.channel.send_to({target_node_id_str}, msg)
 
