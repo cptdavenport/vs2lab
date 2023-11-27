@@ -1,4 +1,6 @@
-""" 
+#!/usr/bin/env python3
+
+"""
 Chord Application
 - defines a DummyChordClient implementation
 - sets up a ring of chord_node instances
@@ -13,10 +15,11 @@ import random
 import sys
 from time import sleep
 
+from rich.console import Console
+
 import chordnode as chord_node
 import constChord
 from context import lab_channel, lab_logging
-from rich.console import Console
 
 lab_logging.setup(stream_level=logging.INFO)
 CONSOLE = Console()
