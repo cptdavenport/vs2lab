@@ -1,6 +1,7 @@
 import logging
 import random
 import time
+import threading
 
 from constMutex import ENTER, RELEASE, ALLOW
 
@@ -57,6 +58,17 @@ class Process:
                 if len(self.queue) == 0:
                     break
 
+    """
+    Clear all messages from the queue with the given process_id.    
+    """
+    def __clear_messages(self, id):
+        self.queue = [msg for msg in self.queue if msg[1] != id]
+
+    """
+    """
+    def __has_crashed(self):
+
+    
     def __request_to_enter(self):
         self.clock = self.clock + 1  # Increment clock value
         request_msg = (self.clock, self.process_id, ENTER)
@@ -82,11 +94,21 @@ class Process:
         self.channel.send_to(self.other_processes, msg)
 
     def __allowed_to_enter(self):
-         # See who has sent a message (the set will hold at most one element per sender)
+
+        def wait_messages():
+            time.sleep(0.2)
+
+        threading.Thread(target=wait_messages).start()
+        # See who has sent a message (the set will hold at most one element per sender)
         processes_with_later_message = set([req[1] for req in self.queue[1:]])
+        active_processes = len(processes_with_later_message)
+        total_proccesses = len(self.other_processes)
         # Access granted if this process is first in queue and all others have answered (logically) later
         first_in_queue = self.queue[0][1] == self.process_id
-        all_have_answered = len(self.other_processes) == len(processes_with_later_message)
+        if (total_proccesses != active_processes):
+            all_have_answered = total_proccesses == (active_processes - 1)
+        else:
+            all_have_answered = total_proccesses == active_processes
         return first_in_queue and all_have_answered
 
     def __receive(self):
